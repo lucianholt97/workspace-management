@@ -262,28 +262,6 @@ if rac_total > 0:
                                 "%d session%s" % (rac_n, plural),
                                 "longest %s" % human(rac_max)]))
 
-# Legend of the live workspaces, in column order (left to right at the top of
-# the graph), each with its color swatch — so a pill at the top is nameable.
-live_spans = sorted([s for s in spans if s["live"]], key=lambda s: s["lane"])
-if live_spans:
-    prefix = "  %s%-11s%s " % (BOLD, "live", RESET)
-    indent = " " * 14
-    line, width = prefix, 14
-    for sp in live_spans:
-        name = sp["slug"]
-        if len(name) > 24:
-            name = name[:23] + "…"
-        plain_w = 2 + len(name)
-        if width > 14 and width + 2 + plain_w > cols:
-            H.append(line)
-            line, width = indent, 14
-        if width > 14:
-            line += "  "
-            width += 2
-        line += "%s●%s %s" % (rgb(sp["color"]), RESET, name)
-        width += plain_w
-    H.append(line)
-
 for h in H:
     print(h)
 print("@@BODY@@")

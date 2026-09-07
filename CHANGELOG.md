@@ -9,6 +9,13 @@ when a release is tagged.
 
 ## [Unreleased]
 
+## [2.22.1] — 2026-09-07
+
+### Changed
+- `ws stats` no longer lists every live workspace in its header. The graph's
+  accent colors already identify them, and dropping the legend gives the
+  scroll view more room for the timeline itself.
+
 ## [2.22.0] — 2026-09-07
 
 ### Added
