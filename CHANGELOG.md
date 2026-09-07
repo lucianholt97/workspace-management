@@ -9,6 +9,15 @@ when a release is tagged.
 
 ## [Unreleased]
 
+### Added
+- `TERMINAL_APP="warp-tabs"`: open a workspace's terminals as tabs in the Warp
+  window you're already in, instead of a new window per workspace. Each tab is
+  a generated tab config (`~/.warp/tab_configs/ws-<slug>--tab<n>-<name>.toml`)
+  opened via `warp://tab_config/<stem>`, colored per workspace and titled
+  `<tab> · <slug>`; `ws remove` deletes them again. Warp still can't script a
+  tab group (warp#13898), so grouping stays a right-click away — "New group
+  with selected tabs".
+
 ## [2.21.0] — 2026-08-25
 
 ### Added

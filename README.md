@@ -183,8 +183,9 @@ a URL — a link can pick between your remotes, it can't introduce one.
 
 The slug can also travel as a query field (`ws://open?slug=<slug>`), which is
 what most trackers produce when you build a link in their UI. Clicking a link
-opens a new terminal window (`TERMINAL_APP`) running the command, so you see its
-output and `serve` can still ask for sudo. `ws url '<link>' --print` resolves a
+opens a terminal (`TERMINAL_APP`: a Terminal.app window, a new Warp window, or
+with `warp-tabs` a tab in your current Warp window) running the command, so you
+see its output and `serve` can still ask for sudo. `ws url '<link>' --print` resolves a
 link to the command without running it.
 
 **What a link cannot do.** A link that reaches you from outside is untrusted
