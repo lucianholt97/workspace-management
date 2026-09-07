@@ -9,6 +9,31 @@ when a release is tagged.
 
 ## [Unreleased]
 
+## [2.22.0] — 2026-09-07
+
+### Added
+- `ws stats`: usage stats and a scrollable timeline of your workspaces. The
+  header shows how many workspaces you've created, removed and have live, the
+  most that ever existed at once (and when), the longest-lived one, average and
+  median lifespans, and how often each command was used. Below it, a timeline
+  in the shape of a git branch graph: time flows DOWN with today at the top,
+  one row per day, and each workspace is a slim vertical bar (`┃`) in its own
+  accent color with dot caps — a `•` on the day it was created, a `•` on the
+  day it was removed, open-ended while live — with notches where it was served/shared/
+  MR'd/tested/opened and per-day "+ created" / "× removed" annotations. Columns
+  are packed the way git packs lanes (a removed workspace frees its column), so
+  the graph is only as wide as your peak number of parallel workspaces. Scroll
+  DOWN into the past (`j/k`, `space/b`, `g/G`, `q`). When output isn't a
+  terminal, or with `--no-scroll`, it prints once; `--json` emits the numbers
+  and every lifespan.
+- The append-only event log behind it (`.ws-history.jsonl`, gitignored; path
+  overridable with `WSM_HISTORY_FILE`). `create`, `remove`, `serve`, `share`,
+  `mr`, `test` and `open` each record what they did — never on `--dry-run`.
+  Nothing is reconstructed from before logging began, but the workspaces that
+  exist when `ws stats` first runs are seeded from their creation date, so the
+  timeline is useful on day one. A workspace removed outside `ws remove` shows
+  as "untracked", ended at the last thing the log saw happen to it.
+
 ## [2.21.1] — 2026-08-28
 
 ### Fixed

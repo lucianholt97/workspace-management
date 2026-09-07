@@ -943,4 +943,5 @@ _ws_landing_box() {
     printf '\n  %sstart it with:%s cd %q && yarn serve-%s\n\n' \
       "$C_DIM" "$C_RESET" "$WT_FRONTEND" "$key"
   fi
+  "$DRY_RUN" || log_ws_event serve "$slug"
 }

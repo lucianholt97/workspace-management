@@ -665,6 +665,9 @@ cmd_create() {
       spin_ok "test DB ready ($(resolve_test_db "$branch_slug"))"
     fi
   fi
+  # Record the birth (with its accent color — the .code-workspace that holds it
+  # is gone once the workspace is removed, so `ws stats` needs it stored here).
+  "$DRY_RUN" || log_ws_event create "$branch_slug" ${workspace_color:+"color=$workspace_color"}
   # Checked last, once it has actually happened — not announced in advance.
   open_workspace "$workspace_file"
   auto_serve_if_needed

@@ -99,5 +99,6 @@ cmd_test() {
   cd "$wt_backend"
   # The CLI php.ini limit is whatever the machine happens to have; a full suite
   # run exhausts a default 128M long before it finishes.
+  "$DRY_RUN" || log_ws_event test "$slug"
   DB_DATABASE="$db" exec php -d memory_limit="$TEST_MEMORY_LIMIT" vendor/bin/phpunit "$@"
 }

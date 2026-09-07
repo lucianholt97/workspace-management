@@ -7,7 +7,7 @@
 # being set before it is sourced.
 # -----------------------------------------------------------------------------
 
-WSM_VERSION="2.21.1"
+WSM_VERSION="2.22.0"
 
 # Sudoers drop-in installed by `ws trust` (NOPASSWD for the exact nginx
 # commands `ws serve` runs). Shared: trust writes it, serve checks for it.
@@ -374,6 +374,9 @@ load_config() {
   # Directory of custom lifecycle hooks (see run_hooks). Machine-specific, so it
   # defaults next to the command and is gitignored, like config.sh.
   WSM_HOOKS_DIR="${WSM_HOOKS_DIR:-$WSM_HOME/hooks}"
+  # Append-only event log behind `ws stats` (see log_ws_event). Gitignored, like
+  # config.sh — it's this machine's history.
+  WSM_HISTORY_FILE="${WSM_HISTORY_FILE:-$WSM_HOME/.ws-history.jsonl}"
   MAIN_WORKSPACE_FILE="${MAIN_WORKSPACE_FILE:-}"
   # Git remote per repo — the two sides can live on different remotes (a fork
   # of one, upstream for the other), so this is not one global setting. Both
@@ -842,6 +845,68 @@ workspace_slugs() {
     [[ -d "$entry" ]] || continue
     printf '%s\n' "$(basename "$entry")"
   done
+}
+
+# ------------------------------- event history -------------------------------
+# `ws stats` reads an append-only JSONL log of what happened to workspaces: one
+# object per line, `ts` in epoch seconds (bash 3.2 can't parse dates, so we
+# never store them). Slug-less events (the raccoon timer) and per-event extras
+# (color, duration) are allowed. Commands must NOT log on --dry-run — the same
+# rule as hooks — so the log only ever holds things that really happened.
+#
+#   log_ws_event <event> <slug or ""> [key=value ...]
+#
+# A value that is a plain integer is written as a JSON number; anything else as
+# a string. Writing is best-effort: a failure to append must never break the
+# command that was logging.
+_hist_json_str() {
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  printf '%s' "$s"
+}
+
+_log_ws_event_at() {
+  local ts="$1" event="${2:-}" slug="${3:-}"
+  if [[ $# -ge 3 ]]; then shift 3; else shift $#; fi
+  local line kv k v
+  line="{\"v\":1,\"ts\":$ts,\"event\":\"$(_hist_json_str "$event")\""
+  [[ -n "$slug" ]] && line+=",\"slug\":\"$(_hist_json_str "$slug")\""
+  for kv in "$@"; do
+    k="${kv%%=*}"; v="${kv#*=}"
+    if [[ "$v" =~ ^-?[0-9]+$ ]]; then
+      line+=",\"$(_hist_json_str "$k")\":$v"
+    else
+      line+=",\"$(_hist_json_str "$k")\":\"$(_hist_json_str "$v")\""
+    fi
+  done
+  line+="}"
+  mkdir -p "$(dirname "$WSM_HISTORY_FILE")" 2>/dev/null || true
+  printf '%s\n' "$line" >> "$WSM_HISTORY_FILE" 2>/dev/null || true
+}
+
+log_ws_event() {
+  _log_ws_event_at "$(date +%s)" "$@"
+}
+
+# Make sure every workspace that exists on disk is tracked as live. Idempotent:
+# a slug whose last lifecycle event is already an open `create` is left alone;
+# one with no history (made before logging existed, or outside the tool) — or
+# whose last event is a `remove` — gets a `create` stamped with its directory
+# mtime and accent color. Run at the start of `ws stats`, so the picture is
+# right even for workspaces the log never saw created.
+history_seed_live() {
+  local slug last mtime color
+  while IFS= read -r slug; do
+    [[ -n "$slug" ]] || continue
+    last="$( { grep -F "\"slug\":\"$slug\"" "$WSM_HISTORY_FILE" 2>/dev/null \
+               | grep -E '"event":"(create|remove)"' | tail -n1 \
+               | grep -o '"event":"[a-z]*"' | cut -d'"' -f4; } 2>/dev/null || true )"
+    [[ "$last" == "create" ]] && continue
+    mtime="$(stat -f '%B' "$WORKSPACES_ROOT/$slug" 2>/dev/null || date +%s)"
+    color="$(_ws_color "$slug")"
+    _log_ws_event_at "$mtime" create "$slug" ${color:+"color=$color"} seeded=1
+  done < <(workspace_slugs)
 }
 
 # Echo the workspace slug for the current directory (first path component under

@@ -458,6 +458,8 @@ cmd_remove() {
   else
     vlog "Workspace '$slug' removed successfully."
     spin_ok "workspace removed ($slug)"
+    # Only a clean, complete removal ends the lifespan in `ws stats`.
+    "$DRY_RUN" || log_ws_event remove "$slug"
   fi
 
   # Its own step, after the removal is done: refresh the REMAINING workspaces'
