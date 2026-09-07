@@ -9,7 +9,16 @@ when a release is tagged.
 
 ## [Unreleased]
 
+## [2.23.0] — 2026-09-07
+
 ### Added
+- `TERMINAL_ENABLED` config/env switch (default `true`): set it to `false` to
+  stop `ws create` auto-opening the session terminals — the serve box then
+  prints the manual `yarn serve-<app>` hint instead of "starting the dev servers
+  in …". The environment beats the config file, so a one-off
+  `TERMINAL_ENABLED=true ws create <slug>` opens them on demand; since create is
+  idempotent on an existing workspace, that doubles as "open this workspace's
+  terminals now".
 - `TERMINAL_APP="warp-tabs"`: open a workspace's terminals as tabs in the Warp
   window you're already in, instead of a new window per workspace. Each tab is
   a generated tab config (`~/.warp/tab_configs/ws-<slug>--tab<n>-<name>.toml`)
